@@ -8,7 +8,7 @@ void merge(vector<Card> &arr, int p, int q, int r)
     int n1 = q - p + 1;
     int n2 = r - q;
 
-    
+   
     Card* L = new Card[n1];
     Card* M = new Card[n2];
 

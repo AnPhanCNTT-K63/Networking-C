@@ -32,8 +32,8 @@ public:
 	{
 		this->x = 0;
 		this->y = 560;
-		this->width = 132;
-		this->height = 192;
+		this->width = 120;
+		this->height = 175;
 
 		setDestinationRect();
 	}
