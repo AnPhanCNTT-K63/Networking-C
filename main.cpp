@@ -98,7 +98,7 @@ int main(int argc, char* args[])
     }
     atexit(enet_deinitialize);
     client.createHost();
-    client.setHost("172.16.5.58");
+    client.setHost("192.168.52.105");
     client.setPort(8888);
     client.setPeer();
 
@@ -265,7 +265,7 @@ int main(int argc, char* args[])
                 }
             }
 
-           
+
             //----------------------------------------------------------------------------
 
             // check if game finish

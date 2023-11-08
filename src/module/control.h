@@ -18,7 +18,8 @@ void hitBtnEvent(User &player, vector<Computer> &computers)
     {
 
         SDL_RenderClear(gRenderer);
-        SDL_RenderCopy(gRenderer, backgroundTexture, NULL, NULL);       
+        SDL_RenderCopy(gRenderer, backgroundTexture, NULL, NULL);
+
         player.hit();
         renderAnimationHit(history, player, computers);
         if (player.checkWin())
@@ -37,8 +38,10 @@ void hitBtnEvent(User &player, vector<Computer> &computers)
         {
             player.printWinner();
         }
-
+       // renderAnimationHit(history, player, computers);
+        renderHistoryVer2(History);
         renderHistory(history);
+        
 
         if (player.getSkip())
         {
@@ -47,7 +50,15 @@ void hitBtnEvent(User &player, vector<Computer> &computers)
         // print skip text and back cards
         for (Computer computer : computers)
         {
-            computer.printBackCard();
+            if (!computer.getIsFinish())
+            {
+                computer.printBackCard();
+            }
+            else
+            {
+                computer.printWinner(computer.getId());
+            }
+
             if (computer.getSkip())
             {
                 computer.printSkipText(computer.getId());
@@ -59,6 +70,7 @@ void hitBtnEvent(User &player, vector<Computer> &computers)
 // print others stuff
 void renderSelectEvent(User player, vector<Computer> computers)
 {
+
     SDL_RenderClear(gRenderer);
     SDL_RenderCopy(gRenderer, backgroundTexture, NULL, NULL);
 
@@ -68,6 +80,8 @@ void renderSelectEvent(User player, vector<Computer> computers)
     }
     renderHitBtn();
     renderHistory(history);
+    renderHistoryVer2(History);
+    
 
     player.printCards();
 
@@ -78,7 +92,15 @@ void renderSelectEvent(User player, vector<Computer> computers)
 
     for (Computer computer : computers)
     {
-        computer.printBackCard();
+        if (!computer.getIsFinish())
+        {
+            computer.printBackCard();
+        }
+        else
+        {
+            computer.printWinner(computer.getId());
+        }
+
         if (computer.getSkip())
         {
             computer.printSkipText(computer.getId());
@@ -103,7 +125,7 @@ void cardSelectEvent(User &player, vector<Computer> &computers, int mouseX, int 
         {
             maxValue = minValue + 80;
 
-            if (minValue < mouseX && maxValue > mouseX)
+            if (minValue <= mouseX && maxValue >= mouseX)
             {
                 index = i;
                 break;

@@ -1,19 +1,22 @@
 #pragma once
-
+#include <iostream>
 #include<vector>
-#include <algorithm>
 #include<map>
+#include <algorithm>
+
 #include "algorithms.h"
 using namespace std;
 
 vector<vector<Card>> history;
 vector<int> gameResult;
+vector<string> sendCardList;
 
 class User
 {
-private:
+protected:
     vector<Card> userCards;
 
+private:
     // index of selected cards
     vector<int> selectedCards;
 
@@ -36,12 +39,13 @@ public:
 
     void initUser(PlayingCards &plCards)
     {
+        userCards.clear();
         for (int i = 0; i < 13; i++)
         {
             Card lastCard = plCards.get1Card();
             this->userCards.push_back(lastCard);
         }
-
+        mergeSort(userCards, 0, 12);
         this->isFinish = false;
         this->isSkip = false;
 
@@ -109,7 +113,7 @@ public:
             // selected cards
             if (count(selectedCards.begin(), selectedCards.end(), i))
             {
-                userCards[i].setY(530);
+                userCards[i].setY(525);
             }
             else
             {
@@ -121,7 +125,7 @@ public:
         }
     }
 
-    void printWinner()
+    void printWinner(int id = -1)
     {
         int len = gameResult.size(); // length of gamerResult
 
@@ -136,6 +140,25 @@ public:
             {
                 destinationRect = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 100, 170, 170};
                 Message_rect = {SCREEN_WIDTH / 2 - 80, SCREEN_HEIGHT / 2 + 220, 100, 100};
+            }
+
+            if (gameResult[i] == id)
+            {
+                if (id == 1)
+                {
+                    destinationRect = {50, SCREEN_HEIGHT / 2 - 145, 170, 170};
+                    Message_rect = {50, SCREEN_HEIGHT / 2, 100, 100};
+                }
+                else if (id == 2)
+                {
+                    destinationRect = {SCREEN_WIDTH / 2 - 100, 5, 170, 170};
+                    Message_rect = {SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 - 195, 100, 100};
+                }
+                else if (id == 3)
+                {
+                    destinationRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT / 2 - 145, 170, 170};
+                    Message_rect = {SCREEN_WIDTH - 150, SCREEN_HEIGHT / 2, 100, 100};
+                }
 
                 SDL_Surface *surfaceMessage = NULL;
                 if (i == 0)
@@ -154,10 +177,11 @@ public:
                 {
                     surfaceMessage = TTF_RenderText_Solid(Lazy, "FOURTH PLACE", White);
                 }
+
                 SDL_Texture *Message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
 
                 SDL_RenderCopy(gRenderer, Message, NULL, &Message_rect);
-                SDL_RenderCopy(gRenderer, this->winTexture, NULL, &destinationRect);
+                SDL_RenderCopy(gRenderer, getWinTexture(), NULL, &destinationRect);
             }
         }
     }
@@ -306,15 +330,18 @@ public:
 
         // append history
         int historyLen = history.size();
-        if (historyLen > 2)
+        /*if (historyLen > 2)
         {
             history.clear();
-        }
+        }*/
 
         vector<Card> temp;
         for (int index : selectedCards)
         {
+            string storage;
+            storage = userCards[index].getPath();
             temp.push_back(userCards[index]);
+            sendCardList.push_back(storage);
         }
         history.push_back(temp);
 
@@ -513,12 +540,41 @@ public:
     Computer(int id, PlayingCards &plCards) : User(plCards)
     {
         this->id = id;
+        this->sortCard();
         this->setWinTexture(id);
     }
 
     int getId()
     {
         return this->id;
+    }
+    int getFirstCards()
+    {
+        // key: value, value: quantiti
+        map<int, int> saveCards = getSaveCards();
+        int value[13];
+        int i = 0;
+
+        for (auto it : saveCards)
+        {
+            if (it.second == 1)
+            {
+                value[i] = it.first;
+                i++;
+            }
+        }
+
+        int minCardValue = userCards[0].getValue();
+
+        if (saveCards[minCardValue] == 1)
+        {
+            while (!checkSequence(value, i) && i > 2)
+                i--;
+        }
+        if (i > 2 && saveCards[minCardValue] == 1)
+            return i;
+        else
+            return saveCards[minCardValue];
     }
 
     void printBackCard()
@@ -528,7 +584,7 @@ public:
             SDL_Rect destinationRect;
 
             int backCardWidth = 80;
-            int backCardHeight = 115;
+            int backCardHeight = 116;
 
             // init 3 cards
 
@@ -626,60 +682,5 @@ public:
     void setPlace()
     {
         gameResult.push_back(id);
-    }
-
-    void printWinner()
-    {
-        int len = gameResult.size(); // length of gamerResult
-
-        // this opens a font style and sets a size
-        TTF_Font *Lazy = TTF_OpenFont("src/fonts/Freedom-nZ4J.otf", 40);
-        SDL_Color White = {255, 255, 255};
-
-        for (int i = 0; i < len; i++)
-        {
-            if (id == gameResult[i])
-            {
-                SDL_Rect destinationRect, Message_rect;
-                if (id == 1)
-                {
-                    destinationRect = {50, SCREEN_HEIGHT / 2 - 145, 170, 170};
-                    Message_rect = {30, SCREEN_HEIGHT / 2, 100, 100};
-                }
-                else if (id == 2)
-                {
-                    destinationRect = {SCREEN_WIDTH / 2 - 100, 5, 170, 170};
-                    Message_rect = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 195, 100, 100};
-                }
-                else if (id == 3)
-                {
-                    destinationRect = {SCREEN_WIDTH - 200, SCREEN_HEIGHT / 2 - 145, 170, 170};
-                    Message_rect = {SCREEN_WIDTH - 180, SCREEN_HEIGHT / 2, 100, 100};
-                }
-
-                SDL_Surface *surfaceMessage = NULL;
-                if (i == 0)
-                {
-                    surfaceMessage = TTF_RenderText_Solid(Lazy, "FIRST PLACE", White);
-                }
-                else if (i == 1)
-                {
-                    surfaceMessage = TTF_RenderText_Solid(Lazy, "SECOND PLACE", White);
-                }
-                else if (i == 2)
-                {
-                    surfaceMessage = TTF_RenderText_Solid(Lazy, "THIRD PLACE", White);
-                }
-                else if (i == 3)
-                {
-                    surfaceMessage = TTF_RenderText_Solid(Lazy, "FOURTH PLACE", White);
-                }
-
-                SDL_Texture *Message = SDL_CreateTextureFromSurface(gRenderer, surfaceMessage);
-
-                SDL_RenderCopy(gRenderer, Message, NULL, &Message_rect);
-                SDL_RenderCopy(gRenderer, getWinTexture(), NULL, &destinationRect);
-            }
-        }
     }
 };
